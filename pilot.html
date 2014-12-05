@@ -1,0 +1,182 @@
+<html>
+<head>
+
+<script src="jquery-2.1.1.min.js"></script>
+<script src="MB.js"></script>
+
+<script>
+
+var c;
+var ctx;
+var id; 
+var d; 
+
+var maxCount;
+var xcorner = -2;
+var ycorner = -1.5;
+
+var xcenter = -0.5;
+var ycenter = 0;
+
+var width = 400;
+var height = 400;
+
+var xoffset = 0;
+var yoffset = 0;
+var zoom = 3;
+
+$(document).ready(function(){
+
+	c = document.getElementById("myCanvas");
+	ctx = c.getContext("2d");
+
+	$("#fall").on("click", function(){
+
+		function clear(){
+			window.clearInterval(timer);
+			alert("done");
+		}
+
+	
+		var maxCount = 200;
+		var maxSize = 4;
+		var xcorner = -2;
+		var ycorner = -1.5;
+
+		//timer = window.setInterval(function () {
+
+
+			xcorner = xcorner + 0.02;
+			ycorner = ycorner + 0.02;
+			zoom = zoom - 0.04;
+			maxCount = maxCount + 2;
+
+
+			$("#maxCount").val(maxCount + '');
+			$("#xcorner").val(xcorner + '');
+			$("#ycorner").val(ycorner + '');
+			$("#zoom").val(zoom + '');
+
+			if(zoom < 0.001 || maxCount > 400) {
+				clear();
+			} else {
+
+				paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+				console.log(zoom, xcorner, ycorner, width, height, maxCount, maxSize);				
+			}
+
+		//}, 1000);
+
+
+	});
+
+	$("#myCanvas").on("mousemove", function(e) {
+
+		var posX = $(this).position().left;
+        var posY = $(this).position().top;
+
+        var realX = (e.pageX - posX);
+        var realY = (e.pageY - posY);	
+
+        var scaleDown = zoom/width;	
+
+		var scaleX = xcorner + (realX * scaleDown) + xoffset;
+		var scaleY = 3 + (ycorner + (realY * scaleDown) * -1) + yoffset;
+
+		$("#xlive").val(scaleX + '');
+		$("#ylive").val(scaleY + '');
+
+	});
+
+	$("#myCanvas").on("click", function(e) {
+
+		var posX = $(this).position().left;
+        var posY = $(this).position().top;
+
+        var realX = (e.pageX - posX);
+        var realY = (e.pageY - posY);
+
+		var xcenter = parseFloat($("#xcenter").val());
+		var ycenter = parseFloat($("#ycenter").val());
+
+		var scaleDown = zoom/width;
+
+		//console.log("real", realX, realY);
+
+		var scaleX = xcorner + (realX * scaleDown) + xoffset;
+		var scaleY = 3 + (ycorner + (realY * scaleDown) * -1) + yoffset;
+
+		xoffset = xcenter - scaleX;
+		yoffset = ycenter - scaleY;
+
+        //console.log("x", scaleX, "y", scaleY);
+		$("#xcenter").val(scaleX + '');
+		$("#ycenter").val(scaleY + '');
+		$("#xoffset").val(xoffset + '');
+		$("#yoffset").val(yoffset + '');
+
+	});
+
+});
+
+function paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
+
+	var arr = [];
+	arr = getArray(zoom, xcorner, ycorner, width, height, maxCount, maxSize);	
+         
+	$.each(arr, function(idx, val){
+
+		ctx.fillStyle = "rgba("+val.clr.r+","+val.clr.g+","+val.clr.b+",1)";
+		ctx.fillRect( val.x, val.y, 1, 1 );
+
+	});
+
+}
+
+
+</script>
+
+
+</head>
+
+<body>
+
+x-corner<input id='xcorner' value='-2' size='10'></input>
+y-corner<input id='ycorner' value='-1.5' size='10'></input><br/>
+x-center<input id='xcenter' value='-0.5' size='10'></input>
+y-center<input id='ycenter' value='0' size='10'></input><br/>
+x-offset<input id='xoffset' value='0' size='10'></input>
+y-offset<input id='yoffset' value='0' size='10'></input><br/>
+x-live<input id='xlive' value='0' size='10'></input>
+y-live<input id='ylive' value='0' size='10'></input><br/>
+zoom<input id='zoom' value='3' size='10'></input><br/>
+maxIters<input id='maxCount' value='200' size='4'></input>
+<!--maxSize<input id='maxSize' value='4' size='4'></input>
+<input type='button' id='go' value='GO'></input>
+<input type='button' id='enhance' value='ENHANCE'></input>-->
+<input type='button' id='fall' value='FALL'></input>
+
+<br/>
+
+<canvas id="myCanvas" width="400" height="400"
+style="border:1px solid #000000; cursor:crosshair;">
+</canvas>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
