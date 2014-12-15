@@ -1,4 +1,3 @@
-
 function getArray(zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
 
 
@@ -61,7 +60,7 @@ for (var x = 1; x <= width; x++) {
     }
 
     color.r = 0;
-    color.g = 200;
+    color.g = 0;
     color.b = 0;
     color.a = 1;    
     return color;

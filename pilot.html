@@ -2,7 +2,7 @@
 <head>
 
 <script src="jquery-2.1.1.min.js"></script>
-<script src="MB.js"></script>
+<script src="pilot.js"></script>
 
 <script>
 
@@ -11,7 +11,8 @@ var ctx;
 var id; 
 var d; 
 
-var maxCount;
+var maxSize = 4;
+var maxCount = 200;
 var xcorner = -2;
 var ycorner = -1.5;
 
@@ -30,96 +31,115 @@ $(document).ready(function(){
 	c = document.getElementById("myCanvas");
 	ctx = c.getContext("2d");
 
-	$("#fall").on("click", function(){
-
-		function clear(){
-			window.clearInterval(timer);
-			alert("done");
-		}
-
+	$("#go").on("click", function(){				
+		paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+	});		
 	
-		var maxCount = 200;
-		var maxSize = 4;
-		var xcorner = -2;
-		var ycorner = -1.5;
+	$("#step").on("click", function(){				
+		doStep();
+	});	
 
-		//timer = window.setInterval(function () {
-
-
-			xcorner = xcorner + 0.02;
-			ycorner = ycorner + 0.02;
-			zoom = zoom - 0.04;
-			maxCount = maxCount + 2;
-
-
-			$("#maxCount").val(maxCount + '');
-			$("#xcorner").val(xcorner + '');
-			$("#ycorner").val(ycorner + '');
-			$("#zoom").val(zoom + '');
-
-			if(zoom < 0.001 || maxCount > 400) {
-				clear();
-			} else {
-
-				paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
-				console.log(zoom, xcorner, ycorner, width, height, maxCount, maxSize);				
-			}
-
-		//}, 1000);
-
-
+	$("#fall").on("click", function(){
+		doFall();
 	});
+		
 
 	$("#myCanvas").on("mousemove", function(e) {
-
 		var posX = $(this).position().left;
-        var posY = $(this).position().top;
-
-        var realX = (e.pageX - posX);
-        var realY = (e.pageY - posY);	
-
-        var scaleDown = zoom/width;	
-
-		var scaleX = xcorner + (realX * scaleDown) + xoffset;
-		var scaleY = 3 + (ycorner + (realY * scaleDown) * -1) + yoffset;
-
-		$("#xlive").val(scaleX + '');
-		$("#ylive").val(scaleY + '');
-
+		var posY = $(this).position().top;
+		doAim(e, posX, posY, false);
 	});
 
-	$("#myCanvas").on("click", function(e) {
-
+	$("#myCanvas").on("click", function(e) {	
 		var posX = $(this).position().left;
-        var posY = $(this).position().top;
-
-        var realX = (e.pageX - posX);
-        var realY = (e.pageY - posY);
-
-		var xcenter = parseFloat($("#xcenter").val());
-		var ycenter = parseFloat($("#ycenter").val());
-
-		var scaleDown = zoom/width;
-
-		//console.log("real", realX, realY);
-
-		var scaleX = xcorner + (realX * scaleDown) + xoffset;
-		var scaleY = 3 + (ycorner + (realY * scaleDown) * -1) + yoffset;
-
-		xoffset = xcenter - scaleX;
-		yoffset = ycenter - scaleY;
-
-        //console.log("x", scaleX, "y", scaleY);
-		$("#xcenter").val(scaleX + '');
-		$("#ycenter").val(scaleY + '');
-		$("#xoffset").val(xoffset + '');
-		$("#yoffset").val(yoffset + '');
-
+		var posY = $(this).position().top;
+		doAim(e, posX, posY, true);
 	});
 
 });
 
+
+function doFall() {
+	timer = window.setInterval(function () {
+
+		if(zoom < 0.00001 || maxCount > 400) {
+			clear();
+		} else {
+			doStep();
+		}
+
+	}, 6000);
+	
+	function clear(){
+		window.clearInterval(timer);
+		alert("done");
+	}
+}
+
+function doStep() {
+
+	var per = 5;
+
+	xcorner = xcorner + (zoom/per);
+	ycorner = ycorner + (zoom/per);
+	zoom = zoom - (zoom/per)*2;
+	maxCount = maxCount + 5;
+
+	$("#maxCount").val(maxCount + '');
+	$("#xcorner").val(xcorner + '');
+	$("#ycorner").val(ycorner + '');
+	$("#zoom").val(zoom + '');
+
+	paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+	//console.log(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+
+}
+
+function doAim(e, posX, posY, isClick) {
+
+	var realX = (e.pageX - posX);
+	var realY = height - (e.pageY - posY);	
+
+	var scaleDown = zoom/width;	
+
+	var scaleX = xcorner + (realX * scaleDown);
+	var scaleY = ycorner + (realY * scaleDown);	
+	
+	$("#xlive").val(scaleX + '');
+	$("#ylive").val(scaleY + '');
+
+	if(isClick) {
+	
+		//xcenter = parseFloat($("#xcenter").val());
+		//ycenter = parseFloat($("#ycenter").val());
+
+		xoffset = scaleX - xcenter;
+		yoffset = scaleY - ycenter;
+		
+		xcenter = xcenter + xoffset;
+		ycenter = ycenter - yoffset;
+		
+		xcorner = xcorner + xoffset;
+		ycorner = ycorner - yoffset;
+
+		//console.log("x", scaleX, "y", scaleY);
+		$("#xcenter").val(scaleX + '');
+		$("#ycenter").val(scaleY + '');
+		$("#xoffset").val(xoffset + '');
+		$("#yoffset").val(yoffset + '');
+		$("#xcorner").val(xcorner + '');
+		$("#ycorner").val(ycorner + '');		
+		
+			
+	}
+}
+
+
+
 function paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
+
+
+var startTime = new Date();
 
 	var arr = [];
 	arr = getArray(zoom, xcorner, ycorner, width, height, maxCount, maxSize);	
@@ -130,6 +150,11 @@ function paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
 		ctx.fillRect( val.x, val.y, 1, 1 );
 
 	});
+	
+
+var endTime = new Date();
+console.log("time " + (endTime - startTime)/1000);
+
 
 }
 
@@ -152,10 +177,10 @@ y-live<input id='ylive' value='0' size='10'></input><br/>
 zoom<input id='zoom' value='3' size='10'></input><br/>
 maxIters<input id='maxCount' value='200' size='4'></input>
 <!--maxSize<input id='maxSize' value='4' size='4'></input>
-<input type='button' id='go' value='GO'></input>
 <input type='button' id='enhance' value='ENHANCE'></input>-->
+<input type='button' id='go' value='GO'></input>
+<input type='button' id='step' value='STEP'></input>
 <input type='button' id='fall' value='FALL'></input>
-
 <br/>
 
 <canvas id="myCanvas" width="400" height="400"
