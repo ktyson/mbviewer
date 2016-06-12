@@ -6,8 +6,9 @@
 
 <script>
 
-var c;
-var ctx;
+var c0, c1, c2, c3, c4;
+var ctx0, ctx1, ctx2, ctx3, ctx4;
+
 var id; 
 var d; 
 
@@ -19,8 +20,8 @@ var ycorner = -1.5;
 var xcenter = -0.5;
 var ycenter = 0;
 
-var width = 80;
-var height = 80;
+var width = 300;
+var height = 300;
 
 var xoffset = 0;
 var yoffset = 0;
@@ -28,11 +29,28 @@ var zoom = 3;
 
 $(document).ready(function(){
 
-	c = document.getElementById("myCanvas");
-	ctx = c.getContext("2d");
+	c0 = document.getElementById("myCanvas0");
+	ctx0 = c0.getContext("2d");
+	
+	c1 = document.getElementById("myCanvas1");
+	ctx1 = c1.getContext("2d");
+	
+	c2 = document.getElementById("myCanvas2");
+	ctx2 = c2.getContext("2d");
+	
+	c3 = document.getElementById("myCanvas3");
+	ctx3 = c3.getContext("2d");
+	
+	//c4 = document.getElementById("myCanvas4");
+	//ctx4 = c4.getContext("2d");
 
-	$("#go").on("click", function(){				
-		paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+	$("#go").on("click", function(){
+		getArrayMB(0);
+		getArrayMB(1);
+		getArrayMB(2);
+		getArrayMB(3);
+		//getArrayMB(4);				
+		//paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
 	});		
 	
 	$("#step").on("click", function(){				
@@ -44,19 +62,21 @@ $(document).ready(function(){
 	});
 		
 
-	$("#myCanvas").on("mousemove", function(e) {
+	$("#myCanvas0").on("mousemove", function(e) {
 		var posX = $(this).position().left;
 		var posY = $(this).position().top;
 		doAim(e, posX, posY, false);
 	});
 
-	$("#myCanvas").on("click", function(e) {	
+	$("#myCanvas0").on("click", function(e) {	
 		var posX = $(this).position().left;
 		var posY = $(this).position().top;
 		doAim(e, posX, posY, true);
 	});
 
+
 });
+
 
 
 function doFall() {
@@ -89,8 +109,13 @@ function doStep() {
 	$("#xcorner").val(xcorner + '');
 	$("#ycorner").val(ycorner + '');
 	$("#zoom").val(zoom + '');
-
-	paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+		
+	getArrayMB(0);
+	getArrayMB(1);
+	getArrayMB(2);
+	getArrayMB(3);
+	//getArrayMB(4);
+	//paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
 	//console.log(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
 
 }
@@ -135,15 +160,64 @@ function doAim(e, posX, posY, isClick) {
 }
 
 
+function getArrayMB(which) {
+	
+	var wid;
+	var ht;
+	var ctx;
+	
+	switch(which) {
+	
+		case 0:
+			//main screen
+			wid = 300;
+			ht = 300;
+			ctx = ctx0;
+			break;
+		case 1:
+			//ctx1
+			wid = 100;
+			ht = 100;
+			ctx = ctx1;
+			break;
+		case 2:
+			//ctx1
+			wid = 100;
+			ht = 100;
+			ctx = ctx2;
+			break;
+		case 3:
+			//ctx1
+			wid = 100;
+			ht = 100;
+			ctx = ctx3;
+			break;
+// 		case 4:
+// 			//ctx1
+// 			wid = 40;
+// 			ht = 40;
+// 			ctx = ctx4;
+// 			break;
+		default:
+		
+		}
+	
+	var arr = [];
+	arr = getArray(zoom, xcorner, ycorner, wid, ht, maxCount, maxSize);	
+	
+	paintIt(arr, ctx, which, zoom, xcorner, ycorner, width, height, maxCount, maxSize);
 
-function paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
+}
+
+
+function paintIt(arr, ctx, which, zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
 
 
 var startTime = new Date();
 
-	var arr = [];
-	arr = getArray(zoom, xcorner, ycorner, width, height, maxCount, maxSize);	
-         
+var arrTime = new Date();	
+console.log("array time for " + which + ": " + (arrTime - startTime)/1000);
+	         
 	$.each(arr, function(idx, val){
 
 		ctx.fillStyle = "rgba("+val.clr.r+","+val.clr.g+","+val.clr.b+",1)";
@@ -153,8 +227,7 @@ var startTime = new Date();
 	
 
 var endTime = new Date();
-console.log("time " + (endTime - startTime)/1000);
-
+console.log("paint time: " + (endTime - startTime)/1000);
 
 }
 
@@ -183,9 +256,41 @@ maxIters<input id='maxCount' value='200' size='4'></input>
 <input type='button' id='fall' value='FALL'></input>
 <br/>
 
-<canvas id="myCanvas" width="80" height="80"
-style="border:1px solid #000000; cursor:crosshair;">
-</canvas>
+<div id="container" width="320">
+	<div style="display:inline-block">
+	<canvas id="myCanvas1" width="100" height="100"
+	style="border:1px solid #000000; cursor:crosshair">
+	</canvas>
+	</div>
+
+	<div style="display:inline-block">
+	<canvas id="myCanvas2" width="100" height="100"
+	style="border:1px solid #000000; cursor:crosshair">
+	</canvas>
+	</div>
+
+	<div style="display:inline-block">
+	<canvas id="myCanvas3" width="100" height="100"
+	style="border:1px solid #000000; cursor:crosshair">
+	</canvas>
+	</div>
+
+<!-- 
+	<div style="display:inline-block">
+	<canvas id="myCanvas4" width="40" height="40"
+	style="border:1px solid #000000; cursor:crosshair">
+	</canvas>
+	</div>
+ -->
+<div>
+
+<div id="maindisplay" width="300">
+	<div  style="float:none">
+	<canvas id="myCanvas0" width="300" height="300"
+	style="border:1px solid #000000; cursor:crosshair">
+	</canvas>
+	</div>
+</div>
 
 </body>
 </html>
