@@ -1,0 +1,87 @@
+<html>
+    
+    <head>
+        
+        <script src="ContinuedFraction.js"></script>
+        <script>
+            function ready() {
+                
+                document.getElementById("myBtn").addEventListener("click", function(){
+                    runCon();
+                });
+
+                
+            }
+            
+            function runCon() {
+                
+                var arrFractions = [];
+                
+                // for(var d = 5; d <= 6; d++) {
+                //     for(var n = 1; n <= Math.floor(d/2); n++) {
+                //         arrFractions.push(n + "/" + d);
+                //     } 
+                // }
+                for(var d = 2; d <= 20; d++) {
+                    for(var n = 1; n <= Math.floor(d/2); n++) {
+                        arrFractions.push(n + "/" + d);
+                    } 
+                }
+                
+                var mapCons = {};
+                
+                for(var i = 0; i < arrFractions.length; i++) {
+                    
+                    var con = getContinuedFraction(arrFractions[i]);
+
+                    if(!mapCons[con]){
+                        mapCons[con] = arrFractions[i];
+                    }
+                    
+                }
+                
+                //sort
+                var  mapConsOrdered = {};
+                Object.keys(mapCons).sort(function(a,b){
+                    return parseInt(a.replace("[","").replace("]","").replace(",","")) - 
+                    parseInt(b.replace("[","").replace("]","").replace(",",""));
+                }).forEach(function(key) {
+                    mapConsOrdered[key] = mapCons[key];
+                });
+                
+                
+                for(con in mapConsOrdered) {
+                    
+                    var node = document.createTextNode(con + "    " + mapConsOrdered[con]);
+                    var spacer = document.createElement("BR");
+                    
+                    document.body.appendChild(node);
+                    document.body.appendChild(spacer);                    
+                    
+                    
+                }                
+                
+            }
+        
+        </script>
+
+        
+    </head>
+    <body onLoad="ready();">
+        
+        <input type="button" value="Go" id="myBtn"></input>
+        <br/><br/>
+
+    </body>
+
+</html>
+
+
+
+
+
+
+
+
+
+

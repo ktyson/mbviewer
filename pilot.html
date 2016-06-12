@@ -19,8 +19,8 @@ var ycorner = -1.5;
 var xcenter = -0.5;
 var ycenter = 0;
 
-var width = 400;
-var height = 400;
+var width = 80;
+var height = 80;
 
 var xoffset = 0;
 var yoffset = 0;
@@ -68,7 +68,7 @@ function doFall() {
 			doStep();
 		}
 
-	}, 6000);
+	}, 1000);
 	
 	function clear(){
 		window.clearInterval(timer);
@@ -166,15 +166,15 @@ console.log("time " + (endTime - startTime)/1000);
 
 <body>
 
-x-corner<input id='xcorner' value='-2' size='10'></input>
-y-corner<input id='ycorner' value='-1.5' size='10'></input><br/>
-x-center<input id='xcenter' value='-0.5' size='10'></input>
-y-center<input id='ycenter' value='0' size='10'></input><br/>
-x-offset<input id='xoffset' value='0' size='10'></input>
-y-offset<input id='yoffset' value='0' size='10'></input><br/>
-x-live<input id='xlive' value='0' size='10'></input>
-y-live<input id='ylive' value='0' size='10'></input><br/>
-zoom<input id='zoom' value='3' size='10'></input><br/>
+x-corner<input id='xcorner' value='-2' size='30'></input>
+y-corner<input id='ycorner' value='-1.5' size='30'></input><br/>
+x-center<input id='xcenter' value='-0.5' size='30'></input>
+y-center<input id='ycenter' value='0' size='30'></input><br/>
+x-offset<input id='xoffset' value='0' size='30'></input>
+y-offset<input id='yoffset' value='0' size='30'></input><br/>
+x-live<input id='xlive' value='0' size='30'></input>
+y-live<input id='ylive' value='0' size='30'></input><br/>
+zoom<input id='zoom' value='3' size='30'></input><br/>
 maxIters<input id='maxCount' value='200' size='4'></input>
 <!--maxSize<input id='maxSize' value='4' size='4'></input>
 <input type='button' id='enhance' value='ENHANCE'></input>-->
@@ -183,7 +183,7 @@ maxIters<input id='maxCount' value='200' size='4'></input>
 <input type='button' id='fall' value='FALL'></input>
 <br/>
 
-<canvas id="myCanvas" width="400" height="400"
+<canvas id="myCanvas" width="80" height="80"
 style="border:1px solid #000000; cursor:crosshair;">
 </canvas>
 
