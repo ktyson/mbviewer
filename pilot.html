@@ -6,8 +6,8 @@
 
 <script>
 
-var c0, c1, c2, c3, c4;
-var ctx0, ctx1, ctx2, ctx3, ctx4;
+var c0, c1, c2, c3, c4, c5, c6, c7, c8, c9;
+var ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, ctx7, ctx8, ctx9;
 
 var id; 
 var d; 
@@ -20,14 +20,16 @@ var ycorner = -1.5;
 var xcenter = -0.5;
 var ycenter = 0;
 
-var width = 300;
-var height = 300;
+var width = 500;
+var height = 500;
 
 var xoffset = 0;
 var yoffset = 0;
 var zoom = 3;
 
 $(document).ready(function(){
+
+	console.log("INIT", 'xcorner', xcorner, 'ycorner', ycorner, 'zoom', zoom, 'maxCount', maxCount);
 
 	c0 = document.getElementById("myCanvas0");
 	ctx0 = c0.getContext("2d");
@@ -41,16 +43,35 @@ $(document).ready(function(){
 	c3 = document.getElementById("myCanvas3");
 	ctx3 = c3.getContext("2d");
 	
-	//c4 = document.getElementById("myCanvas4");
-	//ctx4 = c4.getContext("2d");
+	c4 = document.getElementById("myCanvas4");
+	ctx4 = c4.getContext("2d");
+	
+	c5 = document.getElementById("myCanvas5");
+	ctx5 = c5.getContext("2d");
+	
+	c6 = document.getElementById("myCanvas6");
+	ctx6 = c6.getContext("2d");
+	
+	c7 = document.getElementById("myCanvas7");
+	ctx7 = c7.getContext("2d");
+	
+	c8 = document.getElementById("myCanvas8");
+	ctx8 = c8.getContext("2d");
+	
+	c9 = document.getElementById("myCanvas9");
+	ctx9 = c9.getContext("2d");
 
 	$("#go").on("click", function(){
 		getArrayMB(0);
 		getArrayMB(1);
 		getArrayMB(2);
 		getArrayMB(3);
-		//getArrayMB(4);				
-		//paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+		getArrayMB(4);
+		getArrayMB(5);
+		getArrayMB(6);
+		getArrayMB(7);
+		getArrayMB(8);
+		getArrayMB(9);				
 	});		
 	
 	$("#step").on("click", function(){				
@@ -105,6 +126,9 @@ function doStep() {
 	zoom = zoom - (zoom/per)*2;
 	maxCount = maxCount + 5;
 
+console.log("RECALC", 'xcorner', xcorner, 'ycorner', ycorner, 'zoom', zoom, 'maxCount', maxCount);
+
+
 	$("#maxCount").val(maxCount + '');
 	$("#xcorner").val(xcorner + '');
 	$("#ycorner").val(ycorner + '');
@@ -114,8 +138,12 @@ function doStep() {
 	getArrayMB(1);
 	getArrayMB(2);
 	getArrayMB(3);
-	//getArrayMB(4);
-	//paintIt(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+	getArrayMB(4);
+	getArrayMB(5);
+	getArrayMB(6);
+	getArrayMB(7);
+	getArrayMB(8);
+	getArrayMB(9);
 	//console.log(zoom, xcorner, ycorner, width, height, maxCount, maxSize);
 
 }
@@ -170,41 +198,69 @@ function getArrayMB(which) {
 	
 		case 0:
 			//main screen
-			wid = 300;
-			ht = 300;
+			wid = 500;
+			ht = 500;
 			ctx = ctx0;
 			break;
 		case 1:
-			//ctx1
-			wid = 100;
-			ht = 100;
+			
+			wid = 50;
+			ht = 50;
 			ctx = ctx1;
 			break;
 		case 2:
-			//ctx1
-			wid = 100;
-			ht = 100;
+			
+			wid = 50;
+			ht = 50;
 			ctx = ctx2;
 			break;
 		case 3:
-			//ctx1
-			wid = 100;
-			ht = 100;
+			
+			wid = 50;
+			ht = 50;
 			ctx = ctx3;
 			break;
-// 		case 4:
-// 			//ctx1
-// 			wid = 40;
-// 			ht = 40;
-// 			ctx = ctx4;
-// 			break;
-		default:
+		case 4:
+			
+			wid = 50;
+			ht = 50;
+			ctx = ctx4;
+			break;
+		case 5:
+			
+			wid = 50;
+			ht = 50;
+			ctx = ctx5;
+			break;
+		case 6:
+			
+			wid = 50;
+			ht = 50;
+			ctx = ctx6;
+			break;
+		case 7:
+			
+			wid = 50;
+			ht = 50;
+			ctx = ctx7;
+			break;
+		case 8:
+			
+			wid = 50;
+			ht = 50;
+			ctx = ctx8;
+			break;
+		case 9:
+			
+			wid = 50;
+			ht = 50;
+			ctx = ctx9;
+			break;
 		
 		}
 	
 	var arr = [];
-	arr = getArray(zoom, xcorner, ycorner, wid, ht, maxCount, maxSize);	
-	
+	arr = getArray(zoom, xcorner, ycorner, wid, ht, maxCount, maxSize);		
 	paintIt(arr, ctx, which, zoom, xcorner, ycorner, width, height, maxCount, maxSize);
 
 }
@@ -216,7 +272,7 @@ function paintIt(arr, ctx, which, zoom, xcorner, ycorner, width, height, maxCoun
 var startTime = new Date();
 
 var arrTime = new Date();	
-console.log("array time for " + which + ": " + (arrTime - startTime)/1000);
+//console.log("array time for " + which + ": " + (arrTime - startTime)/1000);
 	         
 	$.each(arr, function(idx, val){
 
@@ -227,7 +283,7 @@ console.log("array time for " + which + ": " + (arrTime - startTime)/1000);
 	
 
 var endTime = new Date();
-console.log("paint time: " + (endTime - startTime)/1000);
+//console.log("paint time: " + (endTime - startTime)/1000);
 
 }
 
@@ -239,6 +295,7 @@ console.log("paint time: " + (endTime - startTime)/1000);
 
 <body>
 
+<div>
 x-corner<input id='xcorner' value='-2' size='30'></input>
 y-corner<input id='ycorner' value='-1.5' size='30'></input><br/>
 x-center<input id='xcenter' value='-0.5' size='30'></input>
@@ -254,43 +311,89 @@ maxIters<input id='maxCount' value='200' size='4'></input>
 <input type='button' id='go' value='GO'></input>
 <input type='button' id='step' value='STEP'></input>
 <input type='button' id='fall' value='FALL'></input>
-<br/>
+</div>
 
-<div id="container" width="320">
-	<div style="display:inline-block">
-	<canvas id="myCanvas1" width="100" height="100"
-	style="border:1px solid #000000; cursor:crosshair">
-	</canvas>
-	</div>
+<div style="min-width: 600px;">
 
-	<div style="display:inline-block">
-	<canvas id="myCanvas2" width="100" height="100"
-	style="border:1px solid #000000; cursor:crosshair">
-	</canvas>
-	</div>
-
-	<div style="display:inline-block">
-	<canvas id="myCanvas3" width="100" height="100"
-	style="border:1px solid #000000; cursor:crosshair">
-	</canvas>
-	</div>
-
-<!-- 
-	<div style="display:inline-block">
-	<canvas id="myCanvas4" width="40" height="40"
-	style="border:1px solid #000000; cursor:crosshair">
-	</canvas>
-	</div>
- -->
-<div>
-
-<div id="maindisplay" width="300">
-	<div  style="float:none">
-	<canvas id="myCanvas0" width="300" height="300"
+<div id="maindisplay" width="500" style="float:left">
+	<div  style="">
+	<canvas id="myCanvas0" width="500" height="500"
 	style="border:1px solid #000000; cursor:crosshair">
 	</canvas>
 	</div>
 </div>
+
+<div style="float:right">
+
+	<!--row 1-->
+	<div id="container" width="320">
+		<div style="display:inline-block">
+		<canvas id="myCanvas1" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+
+		<div style="display:inline-block">
+		<canvas id="myCanvas2" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+
+		<div style="display:inline-block">
+		<canvas id="myCanvas3" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+	
+	<div>
+
+	<!--row 2-->
+	<div id="container" width="320">
+		<div style="display:inline-block">
+		<canvas id="myCanvas4" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+
+		<div style="display:inline-block">
+		<canvas id="myCanvas5" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+
+		<div style="display:inline-block">
+		<canvas id="myCanvas6" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+	<div>
+
+	<!--row 3-->
+	<div id="container" width="320">
+		<div style="display:inline-block">
+		<canvas id="myCanvas7" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+
+		<div style="display:inline-block">
+		<canvas id="myCanvas8" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+
+		<div style="display:inline-block">
+		<canvas id="myCanvas9" width="50" height="50"
+		style="border:1px solid #000000; cursor:crosshair">
+		</canvas>
+		</div>
+	<div>
+<div>
+
+
+
+</div>
+
 
 </body>
 </html>
