@@ -29,7 +29,7 @@ var zoom = 3;
 
 $(document).ready(function(){
 
-	console.log("INIT", 'xcorner', xcorner, 'ycorner', ycorner, 'zoom', zoom, 'maxCount', maxCount);
+	//console.log("INIT", 'xcorner', xcorner, 'ycorner', ycorner, 'zoom', zoom, 'maxCount', maxCount);
 
 	c0 = document.getElementById("myCanvas0");
 	ctx0 = c0.getContext("2d");
@@ -126,7 +126,7 @@ function doStep() {
 	zoom = zoom - (zoom/per)*2;
 	maxCount = maxCount + 5;
 
-console.log("RECALC", 'xcorner', xcorner, 'ycorner', ycorner, 'zoom', zoom, 'maxCount', maxCount);
+//console.log("RECALC", 'xcorner', xcorner, 'ycorner', ycorner, 'zoom', zoom, 'maxCount', maxCount);
 
 
 	$("#maxCount").val(maxCount + '');
@@ -268,12 +268,14 @@ function getArrayMB(which) {
 
 function paintIt(arr, ctx, which, zoom, xcorner, ycorner, width, height, maxCount, maxSize) {
 
+console.log(arr, ctx, which, zoom, xcorner, ycorner, width, height, maxCount, maxSize);
+
 
 var startTime = new Date();
 
 var arrTime = new Date();	
 //console.log("array time for " + which + ": " + (arrTime - startTime)/1000);
-	         
+         
 	$.each(arr, function(idx, val){
 
 		ctx.fillStyle = "rgba("+val.clr.r+","+val.clr.g+","+val.clr.b+",1)";

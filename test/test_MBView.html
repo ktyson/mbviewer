@@ -1,13 +1,15 @@
 <html>
 <head>
 
-
 <script src="../lib/MBView.js"></script>
+<script src="../lib/MBCalc.js"></script>
 <script>
 
 function ready() {
 
-var newMbv = new MBView();
+    var newMbv = new MBView("myCanvasMain", 500, 500);
+    newMbv.SetZoom(3,-2,-1.5);
+    newMbv.Render();
 
 
 }
