@@ -5,11 +5,322 @@
 <script src="../lib/MBCalc.js"></script>
 <script>
 
+var MBVSet = {};
+
+
 function ready() {
 
-    var newMbv = new MBView("myCanvasMain", 500, 500);
-    newMbv.SetZoom(3,-2,-1.5);
-    newMbv.Render();
+    var mainView = document.getElementById("tdMain");
+    mainView.addEventListener("click", function(e) {
+        //this is brittle    
+        var div1 = mainView.parentElement.parentNode.parentNode;
+        var x = e.pageX - div1.offsetLeft;
+        var y = e.pageY - div1.offsetTop;
+        
+        var coordsMB = MBVSet.main.getMBCoords(x,y);
+        printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.xMB + ", " + coordsMB.yMB );
+        
+        printit("info", "settings: " + JSON.stringify(MBVSet.main.GetSettings(),null,' '));
+        
+        
+    
+        
+    });
+
+    var navTbls = document.getElementsByClassName("tbl");
+    var clickNavTbl = function() {
+        var attribute = this.getAttribute("id");
+        var mbName = attribute.replace("td","");
+        
+        
+        printit("nav", "nav " + attribute + " - " + mbName);
+        
+        
+        var tgtSets = MBVSet[mbName].GetSettings();
+        printit("nav",  JSON.stringify(tgtSets,null,' '));
+        
+        
+        MBVSet.main.SetZoom(tgtSets.zoom,tgtSets.xcorner,tgtSets.ycorner);
+        MBVSet.main.Render(); 
+        
+        resetViews(tgtSets);
+        
+        
+    };
+    for (var i = 0; i < navTbls.length; i++) {
+        navTbls[i].addEventListener('click', clickNavTbl, false);
+    }
+    
+    
+    
+    
+    init();
+
+}
+
+
+function init() {
+    
+    var startTime = new Date();
+
+    initMainView();
+    
+    initTopViews();
+    
+    initMidViews();
+    
+    initBasViews();
+    
+    initPrint();
+	
+    var endTime = new Date();
+    printit("speed", "initialized: " + ((endTime - startTime)/1000) + " secs");
+
+}
+
+
+function initMainView() {
+    MBVSet.main = new MBView("canvasMain", "tdMain",  736, 736);
+    MBVSet.main.SetZoom(3,-2,-1.5);
+    MBVSet.main.Render();    
+}
+
+function initTopViews() {
+
+    for(var i = 1; i <= 9; i++) {
+        var mbName = "T" + i;
+        var z = 3;
+        var x;
+        var y;
+        //-2,-1.5 = current
+        switch(i) {
+            case 1:
+                x = -5;
+                y = 1.5;
+                break;
+            case 2:
+                x = -2;
+                y = 1.5;
+                break;
+            case 3:
+                x = 1;
+                y = 1.5;
+                break;
+            case 4:
+                x = -5;
+                y = -1.5;
+                break;
+            case 5:
+                x = -2;
+                y = -1.5;
+                break;
+            case 6:
+                x = 1;
+                y = -1.5;
+                break;
+            case 7:
+                x = -5;
+                y = -4.5;
+                break;
+            case 8:
+                x = -2;
+                y = -4.5;
+                break;
+            case 9:
+                x = 1;
+                y = -4.5;
+                break;  
+            default:
+        }
+        MBVSet[mbName] = new MBView("canvasT"+i, "tdT"+i, 80, 80);
+        MBVSet[mbName].SetZoom(z,x,y);
+        MBVSet[mbName].Render();
+    }
+    
+}
+
+function initMidViews() {
+
+    for(var i = 1; i <= 9; i++) {
+        var mbName = "M" + i;
+        var z = 1;
+        var x;
+        var y;
+        //-2,-1.5 = current
+        switch(i) {
+            case 1:
+                x = -2;
+                y = -1.5;
+                break;
+            case 2:
+                x = -1;
+                y = -1.5;
+                break;
+            case 3:
+                x = 0;
+                y = -1.5;
+                break;
+                
+            case 4:
+                x = -2;
+                y = -0.5;
+                break;
+            case 5:
+                x = -1;
+                y = -0.5;
+                break;
+            case 6:
+                x = 0;
+                y = -0.5;
+                break; 
+                
+            case 7:
+                x = -2;
+                y = 0.5;
+                break;
+            case 8:
+                x = -1;
+                y = 0.5;
+                break;
+            case 9:
+                x = 0;
+                y = 0.5;
+                break;
+ 
+            default:
+        }
+        MBVSet[mbName] = new MBView("canvasM"+i, "tdM"+i, 80, 80);
+        MBVSet[mbName].SetZoom(z,x,y);       
+        MBVSet[mbName].Render();
+    }    
+}
+
+function initBasViews() {
+
+    for(var i = 1; i <= 9; i++) {
+        var mbName = "B" + i;
+        var z = (1/3);
+        var x;
+        var y;
+        //-2,-1.5 = current
+        switch(i) {
+            case 1:
+                x = -1;
+                y = -0.5;
+                break;
+            case 2:
+                x = -1 + 0.3333;
+                y = -0.5;
+                break;
+            case 3:
+                x = -1 + 0.6666;
+                y = -0.5;
+                break;
+                
+            case 4:
+                x = -1;
+                y = -0.5 + 0.3333;
+                break;
+            case 5:
+                x = -1 + 0.3333;
+                y = -0.5 + 0.3333;
+                break;
+            case 6:
+                x = -1 + 0.666;
+                y = -0.5 + 0.3333;
+                break; 
+                
+            case 7:
+                x = -1;
+                y = -0.5 + 0.6666;
+                break;
+            case 8:
+                x = -1 + 0.3333;
+                y = -0.5 + 0.6666;;
+                break;
+            case 9:
+                x = -1 + 0.666;
+                y = -0.5 + 0.6666;;
+                break;                
+
+ 
+            default:
+        }        
+        
+        MBVSet[mbName] = new MBView("canvasB"+i, "tdB"+i, 80, 80);
+        MBVSet[mbName].SetZoom(z,x,y);
+        MBVSet[mbName].Render();
+    }   
+}
+
+function initPrint() {
+    var prDiv = document.getElementById("printout");
+    var anchor = document.createTextNode("welcome");
+    prDiv.appendChild(anchor);
+     
+}
+
+function printit(typ, txt) {
+    
+    var clr; //color
+    switch(typ) {
+        case "info":
+            clr = "yellow";
+            break;
+        case "pos":
+            clr = "violet";
+            break;
+        case "nav":
+            clr = "aqua";
+            break;
+        case "speed":
+            clr = "orange";
+            break;
+        default:
+            clr = "white";
+    }
+    
+    var prDiv = document.getElementById("printout");
+    var txtDiv = document.createElement("DIV");
+    txtN = document.createTextNode(txt);
+    txtDiv.style.color = clr;
+    txtDiv.appendChild(txtN);
+    prDiv.insertBefore(txtDiv, prDiv.firstChild);
+    
+}
+
+
+function resetViews(tgt) {
+    
+    
+        
+        var z = tgt.zoom;  //3 units wide
+        var x = tgt.xcorner; //-2 far left
+        var y = tgt.ycorner; //-1.5 bottom
+        //-2,-1.5 = current coords
+        //-5 = startingX -5 = -2 - 3 // startX = currX - zoom
+        // 1.5 = startY -1.5 + 3 // startY = currY + zoom
+ 
+console.log(z,x,y);    //3, -2, -1.5   
+
+        var newX = x - z;
+        var newY = y + z;
+        var ctr = 1;
+        
+        
+        for(var i = 0; i < 3; i++) {
+            newX = x - z;
+            newY = newY - (z*i);
+            for(var j = 0; j < 3; j++) {
+                newX = newX + (z*j);
+                var mbName = "T" + ctr;
+  console.log(z,newX,newY,mbName);  
+                MBVSet[mbName].SetZoom(z, newX, newY);
+                MBVSet[mbName].Render(); 
+                
+                ctr++
+            }
+        }
 
 
 }
@@ -18,8 +329,138 @@ function ready() {
 
 </script>
 
+<style>
+
+    table {
+        border-collapse: collapse;
+    }
+    .tbl {
+        
+        width:80px;
+        height:80px;   
+        cursor: pointer;
+        
+    }
+    .tblMain {
+        xxborder:solid 1px green;
+        width:736;
+        height:736;
+        cursor:crosshair;
+    }
+    .tblT {
+        background-color: blue;
+        xxborder:solid 1px blue;
+    }
+    .tblB {
+        xxborder:solid 1px red;
+        background-color: red;
+    }
+    .tblM {
+        xxborder:solid 1px yellow;
+        background-color: yellow;
+    }
+    
+    
+    #printout {
+        border: solid 2px aqua;
+        background-color: black;
+        width: 300px;
+        height: 100%;
+	    font-family: Courier;
+	    font-size:10pt;
+	    margin:5px;
+	    padding:5px;
+	    overflow: scroll;
+        
+        
+    }
+    
+</style>
 </head>
 <body onLoad="ready();">
-<h1>Test</h1>
+<div>
+    
+<!--x-corner<input id='xcorner' value='-2' size='30'></input>-->
+<!--y-corner<input id='ycorner' value='-1.5' size='30'></input>-->
+<!--x-center<input id='xcenter' value='-0.5' size='30'></input>-->
+<!--y-center<input id='ycenter' value='0' size='30'></input>-->
+<!--x-offset<input id='xoffset' value='0' size='30'></input>-->
+<!--y-offset<input id='yoffset' value='0' size='30'></input>-->
+<!--x-live<input id='xlive' value='0' size='30'></input>-->
+<!--y-live<input id='ylive' value='0' size='30'></input>-->
+<!--zoom<input id='zoom' value='3' size='30'></input>-->
+<!--maxIters<input id='maxCount' value='200' size='4'></input>-->
+    
+</div>
+
+<table>
+    
+    <tr>
+        <td class="tblmain" id="tdMain" rowspan="9"></td>
+        
+        <td class="tbl tblT" id="tdT1"></td>
+        <td class="tbl tblT" id="tdT2"></td>
+        <td class="tbl tblT" id="tdT3"></td>
+        
+        <td class="tblprint" id="tdPrint" rowspan="9" height="1px">
+            <div id="printout"></div>
+        </td>
+        
+    </tr>
+    
+    <tr>
+        <td class="tbl tblT" id="tdT4"></td>
+        <td class="tbl tblT" id="tdT5"></td>
+        <td class="tbl tblT" id="tdT6"></td>        
+    </tr>
+    <tr>
+        <td class="tbl tblT" id="tdT7"></td>
+        <td class="tbl tblT" id="tdT8"></td>
+        <td class="tbl tblT" id="tdT9"></td>        
+    </tr>
+
+
+
+    <tr>
+        <td class="tbl tblM" id="tdM1"></td>
+        <td class="tbl tblM" id="tdM2"></td>
+        <td class="tbl tblM" id="tdM3"></td>        
+    </tr>
+
+    <tr>
+        <td class="tbl tblM" id="tdM4"></td>
+        <td class="tbl tblM" id="tdM5"></td>
+        <td class="tbl tblM" id="tdM6"></td>        
+    </tr>
+    
+    <tr>
+        <td class="tbl tblM" id="tdM7"></td>
+        <td class="tbl tblM" id="tdM8"></td>
+        <td class="tbl tblM" id="tdM9"></td>        
+    </tr>
+
+    
+    <tr>
+        <td class="tbl tblB" id="tdB1"></td>
+        <td class="tbl tblB" id="tdB2"></td>
+        <td class="tbl tblB" id="tdB3"></td>        
+    </tr>
+
+    <tr>
+        <td class="tbl tblB" id="tdB4"></td>
+        <td class="tbl tblB" id="tdB5"></td>
+        <td class="tbl tblB" id="tdB6"></td>        
+    </tr>
+    
+    <tr>
+        <td class="tbl tblB" id="tdB7"></td>
+        <td class="tbl tblB" id="tdB8"></td>
+        <td class="tbl tblB" id="tdB9"></td>        
+    </tr>
+    
+    
+</table>
+
+
 </body>
 </head>
