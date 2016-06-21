@@ -45,9 +45,36 @@ function ready() {
         navTbls[i].addEventListener('click', clickNavTbl, false);
     }
     
+    var btnBUp = document.getElementById("BUp");
+    btnBUp.addEventListener("click", function(e) {
+        backUp();
+    });
+ 
     
     init();
 
+}
+
+
+function backUp() {
+    var tgtBck = MBVSet["T1"].GetSettings();
+
+    var startTime = new Date();    
+    
+    var z = tgtBck.zoom*3;
+    var x = tgtBck.xcorner;
+    var y = tgtBck.ycorner;
+    
+    MBVSet.main.SetZoom(z,x,y);
+    MBVSet.main.Render(); 
+
+    resetTopViews(tgtBck);
+    resetMidViews(tgtBck);
+    resetBasViews(tgtBck);
+
+    var endTime = new Date();
+    printit("speed", "back up: " + ((endTime - startTime)/1000) + " secs");   
+    
 }
 
 
@@ -404,6 +431,9 @@ console.log(z, mbName, newX, newY);
 
 <style>
 
+    body {
+        background-color: black;
+    }
     table {
         border-collapse: collapse;
     }
@@ -446,13 +476,23 @@ console.log(z, mbName, newX, newY);
 	    overflow: scroll;
         
     }
+    .btn {
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        border: solid white 3px;
+        background-color: black;
+        color: white;
+    }
     
 </style>
 </head>
 <body onLoad="ready();">
 <div>
 
-
+<div class="btnDiv">
+    <input type="button" class="btn" id="BUp" value="BUp"></input>
+</div> 
    
 <!--x-corner<input id='xcorner' value='-2' size='30'></input>-->
 <!--y-corner<input id='ycorner' value='-1.5' size='30'></input>-->
