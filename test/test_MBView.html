@@ -7,7 +7,9 @@
 
 var MBVSet = {};
 
-
+var triState = 0;  //0 - initial data //1 - 1st click //2 - 2nd click
+var currDataObj = {}; //the currently worked on data object
+    
 function ready() {
 
     var mainView = document.getElementById("tdMain");
@@ -18,13 +20,15 @@ function ready() {
         var y = e.pageY - div1.offsetTop;
         
         var coordsMB = MBVSet.main.GetMBCoords(x,y);
-        printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.xMB + ", " + coordsMB.yMB );
+        
+        if(triState == 0) {
+            printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.xMB + ", " + coordsMB.yMB );
+        } else {
+            dataCapture(coordsMB);   
+        }
         
 //printit("info", "settings: " + JSON.stringify(MBVSet.main.GetSettings(),null,' '));
-        
-        
-    
-        
+     
     });
 
     var navTbls = document.getElementsByClassName("tbl");
@@ -49,28 +53,74 @@ function ready() {
     btnBUp.addEventListener("click", function(e) {
         backUp();
     });
- 
+
+    var btnDta = document.getElementById("Dta");
+    btnDta.addEventListener("click", function(e) {
+        dataCapture();
+    });
+    
     
     init();
 
 }
 
+    
+function dataCapture(pts) {
+    //triState is a global - HACK
+    switch(triState) {
+        case 0:
+            //get the imputed n and d
+            var nd = prompt("Enter n/d - (n)umerator and (d)enominator separated by a space.\nThen click first the primary point (center) then the reference point (radius)");
+            if(nd) {
+                currDataObj.n = parseInt(nd.split(" ")[0]);
+                currDataObj.d = parseInt(nd.split(" ")[1]);
+                triState = 1;
+            } else {
+                alert("bad input");
+                triState = 0;
+            }
+            break;
+        case 1:
+            currDataObj.c = pts;
+            triState = 2;
+            break;
+        case 2:
+            currDataObj.r = pts;
+            printit("data", JSON.stringify(currDataObj,null,' '));
+            currDataObj = {};
+            triState = 0; 
+            break;
+        default:
+    }
+    
+    var btnDta = document.getElementById("Dta");
+    if(triState == 0) {
+        btnDta.style.color = "white";
+    } else {
+        btnDta.style.color = "red";
+    }
+    
+            
+}
+    
 
 function backUp() {
-    var tgtBck = MBVSet["T1"].GetSettings();
+    var tgtBck = MBVSet["T5"].GetSettings();
 
     var startTime = new Date();    
     
     var z = tgtBck.zoom*3;
-    var x = tgtBck.xcorner;
-    var y = tgtBck.ycorner;
+    var x = tgtBck.xcorner - z/3;
+    var y = tgtBck.ycorner - z/3;
     
     MBVSet.main.SetZoom(z,x,y);
-    MBVSet.main.Render(); 
+    MBVSet.main.Render();
+    
+    var newTgt = MBVSet.main.GetSettings();
 
-    resetTopViews(tgtBck);
-    resetMidViews(tgtBck);
-    resetBasViews(tgtBck);
+    resetTopViews(newTgt);
+    resetMidViews(newTgt);
+    resetBasViews(newTgt);
 
     var endTime = new Date();
     printit("speed", "back up: " + ((endTime - startTime)/1000) + " secs");   
@@ -348,9 +398,9 @@ function resetTopViews(tgt) {
             var mbName = "T" + ctr;
             ctr++;
             
-console.log(z, mbName, newX, newY);
-            MBVSet[mbName].SetZoom(z,newX, newY);       
-            MBVSet[mbName].Render();
+//console.log(z, mbName, newX, newY);
+//            MBVSet[mbName].SetZoom(z,newX, newY);       
+//            MBVSet[mbName].Render();
         }
         
     }
@@ -380,9 +430,9 @@ function resetMidViews(tgt) {
             var mbName = "M" + ctr;
             ctr++;
             
-console.log(z, mbName, newX, newY);
-            MBVSet[mbName].SetZoom(z,newX, newY);       
-            MBVSet[mbName].Render();
+//console.log(z, mbName, newX, newY);
+//            MBVSet[mbName].SetZoom(z,newX, newY);       
+//            MBVSet[mbName].Render();
         }
         
     }
@@ -416,9 +466,9 @@ function resetBasViews(tgt) {
             var mbName = "B" + ctr;
             ctr++;
             
-console.log(z, mbName, newX, newY);
-            MBVSet[mbName].SetZoom(z,newX, newY);       
-            MBVSet[mbName].Render();
+//console.log(z, mbName, newX, newY);
+  //          MBVSet[mbName].SetZoom(z,newX, newY);       
+    //        MBVSet[mbName].Render();
         }
         
     }
@@ -492,6 +542,7 @@ console.log(z, mbName, newX, newY);
 
 <div class="btnDiv">
     <input type="button" class="btn" id="BUp" value="BUp"></input>
+    <input type="button" class="btn" id="Dta" value="Dta"></input>
 </div> 
    
 <!--x-corner<input id='xcorner' value='-2' size='30'></input>-->
