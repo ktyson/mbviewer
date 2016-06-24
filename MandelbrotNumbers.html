@@ -1,0 +1,768 @@
+<html>
+<head>
+
+<script src="lib/MBView.js"></script>
+<script src="lib/MBCalc.js"></script>
+<script>
+
+var MBVSet = {};
+
+    //hacky globals
+var triState = 0;  //0 - initial data //1 - 1st click //2 - 2nd click
+var currDataObj = {}; //the currently worked on data object
+var isOffset = false;
+    
+function ready() {
+
+    //EVENT - click on main view
+    var mainView = document.getElementById("tdMain");
+    mainView.addEventListener("click", function(e) {
+        //this is brittle    
+        var div1 = mainView.parentElement.parentNode.parentNode;
+        var x = e.pageX - div1.offsetLeft;
+        var y = e.pageY - div1.offsetTop;
+        
+        var coordsMB = MBVSet.main.GetMBCoords(x,y);
+        
+        //SUB-EVENT - when in Data mode, harvest MB x,y's for 2 clicks
+        if(triState == 0) {
+            printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.x + ", " + coordsMB.y );
+        } else {
+            dataCapture(coordsMB);   
+        }
+
+        //SUB-EVENT - when in Offset mode, adjust the xcorner, ycorner and reset
+        if(isOffset) {
+            //$("#xlive").val(scaleX + '');
+            //$("#ylive").val(scaleY + '');
+            
+            var tgtSet = MBVSet.main.GetSettings();
+            
+            var xcenter = tgtSet.xcorner + (tgtSet.zoom / 2);
+            var ycenter = tgtSet.ycorner + (tgtSet.zoom / 2);
+            
+            var xoffset = coordsMB.x - xcenter;
+            var yoffset = coordsMB.y - ycenter;
+//console.log(xoffset, yoffset);
+            var new_xcorner = tgtSet.xcorner + xoffset;
+            var new_ycorner = tgtSet.ycorner - yoffset;
+            
+            var startTime = new Date(); 
+            document.getElementById("fader").classList.add("fadeMe");
+            //document.body.classList.add("disable-click");
+            
+            
+            
+//console.log(new_ycorner, new_xcorner);
+            var z = tgtSet.zoom;
+            var x = new_xcorner;
+            var y = new_ycorner;
+
+            MBVSet.main.SetZoom(z,x,y);
+            MBVSet.main.Render();
+
+            var newTgt = MBVSet.main.GetSettings();
+
+            resetTopViews(newTgt);
+            resetMidViews(newTgt);
+            resetBasViews(newTgt);
+
+            var endTime = new Date();
+            printit("speed", "offset: " + ((endTime - startTime)/1000) + " secs");  
+            document.getElementById("fader").classList.remove("fadeMe");
+            
+            
+            isOffset = false;
+            chgBtnColor(btnOfs, "white");
+
+        }
+        
+    });
+    
+    
+    //EVENT - click on any of 27 (9*3) nav views
+    var navTbls = document.getElementsByClassName("tbl");
+    var clickNavTbl = function() {
+        var attribute = this.getAttribute("id");
+        var mbName = attribute.replace("td","");
+        
+        printit("nav", "nav => " + mbName);
+        
+        var tgtSet = MBVSet[mbName].GetSettings();
+//printit("nav",  JSON.stringify(tgtSet,null,' '));
+        
+        reset(tgtSet);
+    
+    };
+    for (var i = 0; i < navTbls.length; i++) {
+        navTbls[i].addEventListener('click', clickNavTbl, false);
+    }
+    
+    //EVENT - click on Bup - Back Up
+    var btnBUp = document.getElementById("BUp");
+    btnBUp.addEventListener("click", function(e) {
+        backUp();
+    });
+
+    //EVENT - click on Dta - Data harvest
+    var btnDta = document.getElementById("Dta");
+    btnDta.addEventListener("click", function(e) {
+        dataCapture();
+    });
+    
+    //EVENT - click on Lmt - set Limits
+    var btnLmt = document.getElementById("Lmt");
+    btnLmt.addEventListener("click", function(e) {
+        resetLimits();
+    });
+    
+    //EVENT - click on Res - reset to Start
+    var btnRes = document.getElementById("Res");
+    btnRes.addEventListener("click", function(e) {
+        resetToStart();
+    }); 
+    
+    Ofs
+    //EVENT - click on Res - reset to Start
+    var btnOfs = document.getElementById("Ofs");
+    btnOfs.addEventListener("click", function(e) {
+        isOffset = true;
+        chgBtnColor(btnOfs, "red");
+    }); 
+    
+    
+    init();
+
+}
+
+    
+function chgBtnColor(btn, clr) {
+    btn.style.color = clr;
+    
+}
+    
+function resetLimits() {
+
+    var isz = prompt("Enter maxIterations and maxSize separated by a space.\nThe starting set is maxIter: 400, maxSize: 4 ");
+    if(isz) {
+        var maxI = parseInt(isz.split(" ")[0]);
+        var maxSZ = parseInt(isz.split(" ")[1]);
+        MBVSet.main.SetLimits(maxI, maxSZ);
+        printit("lims", "maxIters => " + maxI + ", maxSize => " + maxSZ);
+    } else {
+        alert("bad input");
+    }
+                
+}
+    
+function dataCapture(pts) {
+    //triState is a global - HACK
+    switch(triState) {
+        case 0:
+            //get the imputed n and d
+            var nd = prompt("Enter n/d - (n)umerator and (d)enominator separated by a space.\nThen click first the primary point (center) then the reference point (radius)");
+            if(nd) {
+                currDataObj.n = parseInt(nd.split(" ")[0]);
+                currDataObj.d = parseInt(nd.split(" ")[1]);
+                triState = 1;
+            } else {
+                alert("bad input");
+                triState = 0;
+            }
+            break;
+        case 1:
+            currDataObj.c = pts;
+            triState = 2;
+            break;
+        case 2:
+            currDataObj.r = pts;
+            printit("data", JSON.stringify(currDataObj,null,' '));
+            currDataObj = {};
+            triState = 0; 
+            break;
+        default:
+    }
+    
+    var btnDta = document.getElementById("Dta");
+    if(triState == 0) {
+        chgBtnColor(btnDta, "white");
+    } else {
+        chgBtnColor(btnDta, "red");
+    }
+    
+            
+}
+    
+
+function backUp() {
+    var tgtBck = MBVSet["T5"].GetSettings();
+
+    var startTime = new Date();    
+    
+    var z = tgtBck.zoom*3;
+    var x = tgtBck.xcorner - z/3;
+    var y = tgtBck.ycorner - z/3;
+    
+    MBVSet.main.SetZoom(z,x,y);
+    MBVSet.main.Render();
+    
+    var newTgt = MBVSet.main.GetSettings();
+
+    resetTopViews(newTgt);
+    resetMidViews(newTgt);
+    resetBasViews(newTgt);
+
+    var endTime = new Date();
+    printit("speed", "back up: " + ((endTime - startTime)/1000) + " secs");   
+    
+}
+
+
+function reset(tgtSet) {
+
+    var startTime = new Date();  
+   
+
+    MBVSet.main.SetZoom(tgtSet.zoom,tgtSet.xcorner,tgtSet.ycorner);
+    MBVSet.main.Render(); 
+
+    resetTopViews(tgtSet);
+    resetMidViews(tgtSet);
+    resetBasViews(tgtSet);
+
+    var endTime = new Date();
+    printit("speed", "reset: " + ((endTime - startTime)/1000) + " secs");    
+}
+    
+function resetToStart() {
+
+    var startTime = new Date();    
+
+    MBVSet.main.SetZoom(3,-2,-1.5);
+    MBVSet.main.Render(); 
+    
+    var tgtSet = MBVSet.main.GetSettings();
+    resetTopViews(tgtSet);
+    resetMidViews(tgtSet);
+    resetBasViews(tgtSet);
+
+    var endTime = new Date();
+    printit("speed", "restart: " + ((endTime - startTime)/1000) + " secs");    
+    
+    
+}
+
+
+function init() {
+    
+    var startTime = new Date();
+
+    
+    initMainView();
+    
+    initTopViews();
+    
+    initMidViews();
+    
+    initBasViews();
+    
+    initPrint();
+	
+    var endTime = new Date();
+    printit("speed", "initialized: " + ((endTime - startTime)/1000) + " secs");
+    
+
+}
+
+
+function initMainView() {
+    MBVSet.main = new MBView("canvasMain", "tdMain",  736, 736);
+    MBVSet.main.SetZoom(3,-2,-1.5);
+    MBVSet.main.Render();    
+}
+
+function initTopViews() {
+
+    for(var i = 1; i <= 9; i++) {
+        var mbName = "T" + i;
+        var z = 3;
+        var x;
+        var y;
+        //-2,-1.5 = current
+        switch(i) {
+            case 1:
+                x = -5;
+                y = 1.5;
+                break;
+            case 2:
+                x = -2;
+                y = 1.5;
+                break;
+            case 3:
+                x = 1;
+                y = 1.5;
+                break;
+            case 4:
+                x = -5;
+                y = -1.5;
+                break;
+            case 5:
+                x = -2;
+                y = -1.5;
+                break;
+            case 6:
+                x = 1;
+                y = -1.5;
+                break;
+            case 7:
+                x = -5;
+                y = -4.5;
+                break;
+            case 8:
+                x = -2;
+                y = -4.5;
+                break;
+            case 9:
+                x = 1;
+                y = -4.5;
+                break;  
+            default:
+        }
+        MBVSet[mbName] = new MBView("canvasT"+i, "tdT"+i, 80, 80);
+        MBVSet[mbName].SetZoom(z,x,y);
+        MBVSet[mbName].Render();
+    }
+    
+}
+
+function initMidViews() {
+
+    for(var i = 1; i <= 9; i++) {
+        var mbName = "M" + i;
+        var z = 1;
+        var x;
+        var y;
+        //-2,-1.5 = current
+        switch(i) {
+            case 1:
+                x = -2;
+                y = -1.5;
+                break;
+            case 2:
+                x = -1;
+                y = -1.5;
+                break;
+            case 3:
+                x = 0;
+                y = -1.5;
+                break;
+                
+            case 4:
+                x = -2;
+                y = -0.5;
+                break;
+            case 5:
+                x = -1;
+                y = -0.5;
+                break;
+            case 6:
+                x = 0;
+                y = -0.5;
+                break; 
+                
+            case 7:
+                x = -2;
+                y = 0.5;
+                break;
+            case 8:
+                x = -1;
+                y = 0.5;
+                break;
+            case 9:
+                x = 0;
+                y = 0.5;
+                break;
+ 
+            default:
+        }
+        MBVSet[mbName] = new MBView("canvasM"+i, "tdM"+i, 80, 80);
+        MBVSet[mbName].SetZoom(z,x,y);       
+        MBVSet[mbName].Render();
+    }    
+}
+
+function initBasViews() {
+
+    for(var i = 1; i <= 9; i++) {
+        var mbName = "B" + i;
+        var z = (1/3);
+        var x;
+        var y;
+        //-2,-1.5 = current
+        switch(i) {
+            case 1:
+                x = -1;
+                y = -0.5;
+                break;
+            case 2:
+                x = -1 + 0.3333;
+                y = -0.5;
+                break;
+            case 3:
+                x = -1 + 0.6666;
+                y = -0.5;
+                break;
+                
+            case 4:
+                x = -1;
+                y = -0.5 + 0.3333;
+                break;
+            case 5:
+                x = -1 + 0.3333;
+                y = -0.5 + 0.3333;
+                break;
+            case 6:
+                x = -1 + 0.666;
+                y = -0.5 + 0.3333;
+                break; 
+                
+            case 7:
+                x = -1;
+                y = -0.5 + 0.6666;
+                break;
+            case 8:
+                x = -1 + 0.3333;
+                y = -0.5 + 0.6666;;
+                break;
+            case 9:
+                x = -1 + 0.666;
+                y = -0.5 + 0.6666;;
+                break;                
+
+ 
+            default:
+        }        
+        
+        MBVSet[mbName] = new MBView("canvasB"+i, "tdB"+i, 80, 80);
+        MBVSet[mbName].SetZoom(z,x,y);
+        MBVSet[mbName].Render();
+    }   
+}
+
+function initPrint() {
+    var prDiv = document.getElementById("printout");
+    var anchor = document.createTextNode("welcome");
+    prDiv.appendChild(anchor);
+     
+}
+
+function printit(typ, txt) {
+    
+    var clr; //color
+    switch(typ) {
+        case "lims":
+            clr = "green";
+        case "info":
+            clr = "yellow";
+            break;
+        case "pos":
+            clr = "violet";
+            break;
+        case "nav":
+            clr = "aqua";
+            break;
+        case "speed":
+            clr = "orange";
+            break;
+        default:
+            clr = "white";
+    }
+    
+    var prDiv = document.getElementById("printout");
+    var txtDiv = document.createElement("DIV");
+    txtN = document.createTextNode(txt);
+    txtDiv.style.color = clr;
+    txtDiv.appendChild(txtN);
+    prDiv.insertBefore(txtDiv, prDiv.firstChild);
+    
+}
+
+
+
+
+function resetTopViews(tgt) {
+
+    //****
+    var z = tgt.zoom; 
+    var x = tgt.xcorner - z; 
+    var y = tgt.ycorner + z; 
+
+    var ctr = 1;
+    
+    for(var i = 2; i >= 0; i--) {
+        
+        var newY = y - (z*i);
+        
+        for(var j = 0; j < 3; j++) {
+            
+            ///*****
+            var newX = x + (z*j);
+            
+            var mbName = "T" + ctr;
+            ctr++;
+            
+//console.log(z, mbName, newX, newY);
+            MBVSet[mbName].SetZoom(z,newX, newY);       
+            MBVSet[mbName].Render();
+        }
+        
+    }
+
+}
+
+
+function resetMidViews(tgt) {
+
+    //******
+    var z = (tgt.zoom/3); 
+    var x = tgt.xcorner; 
+    var y = tgt.ycorner; 
+
+    var ctr = 1;
+    
+    for(var i = 0; i < 3; i++) {
+        
+        var newY = y + (z*i); ///****
+        
+        for(var j = 0; j < 3; j++) {
+            
+            ///
+            var newX = x + (z*j); ///+ to -
+            ////
+            
+            var mbName = "M" + ctr;
+            ctr++;
+            
+//console.log(z, mbName, newX, newY);
+            MBVSet[mbName].SetZoom(z,newX, newY);       
+            MBVSet[mbName].Render();
+        }
+        
+    }
+
+}
+
+
+function resetBasViews(tgt) {
+
+
+    //reset base target
+    tgtNew = MBVSet["M5"].GetSettings();
+
+    //******
+    var z = (tgtNew.zoom / 3); 
+    var x = tgtNew.xcorner; 
+    var y = tgtNew.ycorner; 
+
+    var ctr = 1;
+    
+    for(var i = 0; i < 3; i++) {
+        
+        var newY = y + (z*i); ///****
+        
+        for(var j = 0; j < 3; j++) {
+            
+            ///
+            var newX = x + (z*j); ///+ to -
+            ////
+            
+            var mbName = "B" + ctr;
+            ctr++;
+            
+//console.log(z, mbName, newX, newY);
+            MBVSet[mbName].SetZoom(z,newX, newY);       
+            MBVSet[mbName].Render();
+        }
+        
+    }
+
+}
+
+
+
+</script>
+
+<style>
+
+    body {
+        background-color: black;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    .tbl {
+        
+        width:80px;
+        height:80px;   
+        cursor: pointer;
+        
+    }
+    .tblMain {
+        xxborder:solid 1px green;
+        width:736;
+        height:736;
+        cursor:crosshair;
+    }
+    .tblT {
+        background-color: blue;
+        xxborder:solid 1px blue;
+    }
+    .tblB {
+        xxborder:solid 1px red;
+        background-color: red;
+    }
+    .tblM {
+        xxborder:solid 1px yellow;
+        background-color: yellow;
+    }
+    
+    
+    #printout {
+        border: solid 2px aqua;
+        background-color: black;
+        width: 300px;
+        height: 100%;
+	    font-family: Courier;
+	    font-size:10pt;
+	    margin:5px;
+	    padding:5px;
+	    overflow: scroll;
+        
+    }
+    .btn {
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        border: solid white 3px;
+        background-color: black;
+        color: white;
+    }
+    
+    body.disable-click {
+        pointer-events: none;
+        xxpointer-events: auto;
+    }
+    
+    div.fadeMe {
+        opacity:0.7;
+        filter: alpha(opacity=20);
+        background-color:#000; 
+        width:100%; 
+        height:100%; 
+        z-index:10;
+        top:0; 
+        left:0; 
+        position:fixed; 
+    }
+    
+</style>
+</head>
+<body onLoad="ready();">
+
+<div id="fader" class=""></div>
+    
+<div>
+
+<div class="btnDiv">
+    <input type="button" class="btn" id="Res" value="Res"></input>
+    <input type="button" class="btn" id="Ofs" value="Ofs"></input>
+    <input type="button" class="btn" id="BUp" value="BUp"></input>
+    <span>&nbsp;&nbsp;</span>
+    <input type="button" class="btn" id="Lmt" value="Lmt"></input>
+    <input type="button" class="btn" id="Dta" value="Dta"></input>
+</div> 
+   
+<!--x-corner<input id='xcorner' value='-2' size='30'></input>-->
+<!--y-corner<input id='ycorner' value='-1.5' size='30'></input>-->
+<!--x-center<input id='xcenter' value='-0.5' size='30'></input>-->
+<!--y-center<input id='ycenter' value='0' size='30'></input>-->
+<!--x-offset<input id='xoffset' value='0' size='30'></input>-->
+<!--y-offset<input id='yoffset' value='0' size='30'></input>-->
+<!--x-live<input id='xlive' value='0' size='30'></input>-->
+<!--y-live<input id='ylive' value='0' size='30'></input>-->
+<!--zoom<input id='zoom' value='3' size='30'></input>-->
+<!--maxIters<input id='maxCount' value='200' size='4'></input>-->
+    
+</div>
+
+<table>
+    
+    <tr>
+        <td class="tblmain" id="tdMain" rowspan="9"></td>
+        
+        <td class="tbl tblT" id="tdT1"></td>
+        <td class="tbl tblT" id="tdT2"></td>
+        <td class="tbl tblT" id="tdT3"></td>
+        
+        <td class="tblprint" id="tdPrint" rowspan="9" height="1px">
+            <div id="printout"></div>
+        </td>
+        
+    </tr>
+    
+    <tr>
+        <td class="tbl tblT" id="tdT4"></td>
+        <td class="tbl tblT" id="tdT5"></td>
+        <td class="tbl tblT" id="tdT6"></td>        
+    </tr>
+    <tr>
+        <td class="tbl tblT" id="tdT7"></td>
+        <td class="tbl tblT" id="tdT8"></td>
+        <td class="tbl tblT" id="tdT9"></td>        
+    </tr>
+
+
+
+    <tr>
+        <td class="tbl tblM" id="tdM1"></td>
+        <td class="tbl tblM" id="tdM2"></td>
+        <td class="tbl tblM" id="tdM3"></td>        
+    </tr>
+
+    <tr>
+        <td class="tbl tblM" id="tdM4"></td>
+        <td class="tbl tblM" id="tdM5"></td>
+        <td class="tbl tblM" id="tdM6"></td>        
+    </tr>
+    
+    <tr>
+        <td class="tbl tblM" id="tdM7"></td>
+        <td class="tbl tblM" id="tdM8"></td>
+        <td class="tbl tblM" id="tdM9"></td>        
+    </tr>
+
+    
+    <tr>
+        <td class="tbl tblB" id="tdB1"></td>
+        <td class="tbl tblB" id="tdB2"></td>
+        <td class="tbl tblB" id="tdB3"></td>        
+    </tr>
+
+    <tr>
+        <td class="tbl tblB" id="tdB4"></td>
+        <td class="tbl tblB" id="tdB5"></td>
+        <td class="tbl tblB" id="tdB6"></td>        
+    </tr>
+    
+    <tr>
+        <td class="tbl tblB" id="tdB7"></td>
+        <td class="tbl tblB" id="tdB8"></td>
+        <td class="tbl tblB" id="tdB9"></td>        
+    </tr>
+    
+    
+</table>
+
+
+</body>
+</head>
