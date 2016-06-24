@@ -22,7 +22,7 @@ function ready() {
         var coordsMB = MBVSet.main.GetMBCoords(x,y);
         
         if(triState == 0) {
-            printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.xMB + ", " + coordsMB.yMB );
+            printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.x + ", " + coordsMB.y );
         } else {
             dataCapture(coordsMB);   
         }
@@ -42,8 +42,7 @@ function ready() {
 //printit("nav",  JSON.stringify(tgtSet,null,' '));
         
         reset(tgtSet);
-     
-        
+    
     };
     for (var i = 0; i < navTbls.length; i++) {
         navTbls[i].addEventListener('click', clickNavTbl, false);
@@ -59,11 +58,30 @@ function ready() {
         dataCapture();
     });
     
+    var btnLmt = document.getElementById("Lmt");
+    btnLmt.addEventListener("click", function(e) {
+        resetLimits();
+    });
+    
     
     init();
 
 }
 
+    
+function resetLimits() {
+
+    var isz = prompt("Enter maxIterations and maxSize separated by a space.\nThe starting set is maxIter: 400, maxSize: 4 ");
+    if(isz) {
+        var maxI = parseInt(isz.split(" ")[0]);
+        var maxSZ = parseInt(isz.split(" ")[1]);
+        MBVSet.main.SetLimits(maxI, maxSZ);
+        printit("lims", "maxIters => " + maxI + ", maxSize => " + maxSZ);
+    } else {
+        alert("bad input");
+    }
+                
+}
     
 function dataCapture(pts) {
     //triState is a global - HACK
@@ -93,12 +111,12 @@ function dataCapture(pts) {
         default:
     }
     
-    var btnDta = document.getElementById("Dta");
-    if(triState == 0) {
-        btnDta.style.color = "white";
-    } else {
-        btnDta.style.color = "red";
-    }
+//    var btnDta = document.getElementById("Dta");
+//    if(triState == 0) {
+//        btnDta.style.color = "white";
+//    } else {
+//        btnDta.style.color = "red";
+//    }
     
             
 }
@@ -349,6 +367,8 @@ function printit(typ, txt) {
     
     var clr; //color
     switch(typ) {
+        case "lims":
+            clr = "green";
         case "info":
             clr = "yellow";
             break;
@@ -399,8 +419,8 @@ function resetTopViews(tgt) {
             ctr++;
             
 //console.log(z, mbName, newX, newY);
-//            MBVSet[mbName].SetZoom(z,newX, newY);       
-//            MBVSet[mbName].Render();
+            MBVSet[mbName].SetZoom(z,newX, newY);       
+            MBVSet[mbName].Render();
         }
         
     }
@@ -431,8 +451,8 @@ function resetMidViews(tgt) {
             ctr++;
             
 //console.log(z, mbName, newX, newY);
-//            MBVSet[mbName].SetZoom(z,newX, newY);       
-//            MBVSet[mbName].Render();
+            MBVSet[mbName].SetZoom(z,newX, newY);       
+            MBVSet[mbName].Render();
         }
         
     }
@@ -467,8 +487,8 @@ function resetBasViews(tgt) {
             ctr++;
             
 //console.log(z, mbName, newX, newY);
-  //          MBVSet[mbName].SetZoom(z,newX, newY);       
-    //        MBVSet[mbName].Render();
+            MBVSet[mbName].SetZoom(z,newX, newY);       
+            MBVSet[mbName].Render();
         }
         
     }
@@ -543,6 +563,7 @@ function resetBasViews(tgt) {
 <div class="btnDiv">
     <input type="button" class="btn" id="BUp" value="BUp"></input>
     <input type="button" class="btn" id="Dta" value="Dta"></input>
+    <input type="button" class="btn" id="Lmt" value="Lmt"></input>
 </div> 
    
 <!--x-corner<input id='xcorner' value='-2' size='30'></input>-->
