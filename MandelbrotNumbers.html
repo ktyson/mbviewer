@@ -2,10 +2,12 @@
 <head>
 
 <script src="lib/MBView.js"></script>
+<script src="lib/MBOverlay.js"></script>
 <script src="lib/MBCalc.js"></script>
 <script>
 
 var MBVSet = {};
+var MBOver = {};
 
     //hacky globals
 var triState = 0;  //0 - initial data //1 - 1st click //2 - 2nd click
@@ -21,11 +23,17 @@ function ready() {
         var div1 = mainView.parentElement.parentNode.parentNode;
         var x = e.pageX - div1.offsetLeft;
         var y = e.pageY - div1.offsetTop;
+    
         
         var coordsMB = MBVSet.main.GetMBCoords(x,y);
         
         //SUB-EVENT - when in Data mode, harvest MB x,y's for 2 clicks
         if(triState == 0) {
+            
+            MBOver.ClearOver();
+            MBOver.DrawDot(x,y);
+
+            
             printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.x + ", " + coordsMB.y );
         } else {
             dataCapture(coordsMB);   
@@ -122,12 +130,13 @@ function ready() {
         resetToStart();
     }); 
     
-    Ofs
+    //Ofs
     //EVENT - click on Res - reset to Start
     var btnOfs = document.getElementById("Ofs");
     btnOfs.addEventListener("click", function(e) {
         isOffset = true;
         chgBtnColor(btnOfs, "red");
+        
     }); 
     
     
@@ -260,6 +269,8 @@ function init() {
     
     initMainView();
     
+    initOverlay();
+    
     initTopViews();
     
     initMidViews();
@@ -276,9 +287,14 @@ function init() {
 
 
 function initMainView() {
-    MBVSet.main = new MBView("canvasMain", "tdMain",  736, 736);
+    MBVSet.main = new MBView("canvasMain", "divMain",  736, 736);
     MBVSet.main.SetZoom(3,-2,-1.5);
     MBVSet.main.Render();    
+}
+    
+function initOverlay() {
+    MBOver = new MBOverlay("canvasOver", "divMain",  736, 736);
+    
 }
 
 function initTopViews() {
@@ -650,7 +666,6 @@ function resetBasViews(tgt) {
     
     body.disable-click {
         pointer-events: none;
-        xxpointer-events: auto;
     }
     
     div.fadeMe {
@@ -663,6 +678,19 @@ function resetBasViews(tgt) {
         top:0; 
         left:0; 
         position:fixed; 
+    }
+ 
+    #divMain canvas{
+       position:absolute; /* change */
+       left: 0px; 
+       top: 0px;
+    }
+    
+    #divMain {
+        width:100%;
+        height:100%;
+        margin:0 auto;
+        position: relative;
     }
     
 </style>
@@ -698,7 +726,9 @@ function resetBasViews(tgt) {
 <table>
     
     <tr>
-        <td class="tblmain" id="tdMain" rowspan="9"></td>
+        <td class="tblmain" id="tdMain" rowspan="9">
+            <div id="divMain"></div>
+        </td>
         
         <td class="tbl tblT" id="tdT1"></td>
         <td class="tbl tblT" id="tdT2"></td>
