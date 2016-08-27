@@ -9,10 +9,11 @@
 var MBVSet = {};
 var MBOver = {};
 
-    //hacky globals
+//hacky globals
 var triState = 0;  //0 - initial data //1 - 1st click //2 - 2nd click
 var currDataObj = {}; //the currently worked on data object
 var isOffset = false;
+var isLocate = false;
     
 function ready() {
 
@@ -28,17 +29,25 @@ function ready() {
         var coordsMB = MBVSet.main.GetMBCoords(x,y);
         
         //SUB-EVENT - when in Data mode, harvest MB x,y's for 2 clicks
-        if(triState == 0) {
-            
-            MBOver.ClearOver();
-            MBOver.DrawDot(x,y);
-
-            
-            printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.x + ", " + coordsMB.y );
-        } else {
+        if(triState != 0) {
             dataCapture(coordsMB);   
         }
 
+        //SUB-EVENT - when in Locate mode, return the MB coords
+        if(isLocate) {
+            
+            
+            MBOver.DrawDot(x,y);
+            //MBOver.DrawLine(x,y,x+30,y+20);
+            //MBOver.DrawSquare(x+30,y+20);
+            
+            printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.x + ", " + coordsMB.y );
+            
+            isLocate = false;
+            chgBtnColor(btnLoc, "white");
+            
+        }
+        
         //SUB-EVENT - when in Offset mode, adjust the xcorner, ycorner and reset
         if(isOffset) {
             //$("#xlive").val(scaleX + '');
@@ -58,9 +67,7 @@ function ready() {
             var startTime = new Date(); 
             document.getElementById("fader").classList.add("fadeMe");
             //document.body.classList.add("disable-click");
-            
-            
-            
+                       
 //console.log(new_ycorner, new_xcorner);
             var z = tgtSet.zoom;
             var x = new_xcorner;
@@ -78,8 +85,7 @@ function ready() {
             var endTime = new Date();
             printit("speed", "offset: " + ((endTime - startTime)/1000) + " secs");  
             document.getElementById("fader").classList.remove("fadeMe");
-            
-            
+                        
             isOffset = false;
             chgBtnColor(btnOfs, "white");
 
@@ -104,51 +110,159 @@ function ready() {
     };
     for (var i = 0; i < navTbls.length; i++) {
         navTbls[i].addEventListener('click', clickNavTbl, false);
-    }
-    
-    //EVENT - click on Bup - Back Up
+    }  
+
     var btnBUp = document.getElementById("BUp");
+    btnBUp.addEventListener("mouseover", function(e) {
+        hiliteOn("BUp");
+    });
+    btnBUp.addEventListener("mouseleave", function(e) {
+        hiliteOff("BUp");
+    });
     btnBUp.addEventListener("click", function(e) {
         backUp();
     });
 
-    //EVENT - click on Dta - Data harvest
+
     var btnDta = document.getElementById("Dta");
+    btnDta.addEventListener("mouseover", function(e) {
+        hiliteOn("Dta");
+    });
+    btnDta.addEventListener("mouseleave", function(e) {
+        hiliteOff("Dta");
+    });
     btnDta.addEventListener("click", function(e) {
         dataCapture();
     });
     
-    //EVENT - click on Lmt - set Limits
+
     var btnLmt = document.getElementById("Lmt");
+    btnLmt.addEventListener("mouseover", function(e) {
+        hiliteOn("Lmt");
+    });
+    btnLmt.addEventListener("mouseleave", function(e) {
+        hiliteOff("Lmt");
+    });
     btnLmt.addEventListener("click", function(e) {
         resetLimits();
     });
     
-    //EVENT - click on Res - reset to Start
+
     var btnRes = document.getElementById("Res");
+    btnRes.addEventListener("mouseover", function(e) {
+        hiliteOn("Res");
+    });
+    btnRes.addEventListener("mouseleave", function(e) {
+        hiliteOff("Res");
+    });
     btnRes.addEventListener("click", function(e) {
         resetToStart();
     }); 
     
-    //Ofs
-    //EVENT - click on Res - reset to Start
+
+
     var btnOfs = document.getElementById("Ofs");
+    btnOfs.addEventListener("mouseover", function(e) {
+        hiliteOn("Ofs");
+    });
+    btnOfs.addEventListener("mouseleave", function(e) {
+        hiliteOff("Ofs");
+    });
     btnOfs.addEventListener("click", function(e) {
         isOffset = true;
-        chgBtnColor(btnOfs, "red");
-        
+        //chgBtnColor(btnOfs, colorKey["nav"]);      
     }); 
+
+    var btnLoc = document.getElementById("Loc");
+    btnLoc.addEventListener("mouseover", function(e) {
+        hiliteOn("Loc");
+    });
+    btnLoc.addEventListener("mouseleave", function(e) {
+        hiliteOff("Loc");
+    });
+    btnLoc.addEventListener("click", function(e) {
+        isLocate = true;     
+    }); 
+
     
+    var btnClr = document.getElementById("Clr");
+    btnClr.addEventListener("mouseover", function(e) {
+        hiliteOn("Clr");
+    });
+    btnClr.addEventListener("mouseleave", function(e) {
+        hiliteOff("Clr");
+    });
+    btnClr.addEventListener("click", function(e) {
+        MBOver.ClearOver();    
+    }); 
     
     init();
 
 }
 
+//GLOBALS pertaining to buttons and printouts    
+    
+var btnKey = {};
+//maps btn id with type and hint   
+btnKey["Res"] = {typ:"speed", txt:"Restart: redraw main view"};    
+btnKey["Ofs"] = {typ:"speed", txt:"Offset: click a point - click where to move it"};
+btnKey["BUp"] = {typ:"speed", txt:"BackUp: move straight up one level higher"};  
+btnKey["Loc"] = {typ:"pos", txt:"Locate: click - print coordinates"};    
+btnKey["Lmt"] = {typ:"lims", txt:"Limits: set recursion limits"};
+btnKey["Dta"] = {typ:"data", txt:"Data: collect info"};
+btnKey["Clr"] = {typ:"pos", txt:"Clear: erase all locate points"};
+//maps typ[e] to color
+var colorKey = {};
+colorKey["lims"] = "green";
+colorKey["info"] = "yellow";
+colorKey["pos"] = "violet";
+colorKey["nav"] ="aqua";
+colorKey["speed"] = "orange";
+colorKey["data"] = "white";
+    
+//COMMAND BUTTON helper functions
+    
+function hiliteOn(whichBtn) {
+    var btn = document.getElementById(whichBtn);
+    var clr = colorKey[btnKey[whichBtn].typ];
+    chgBtnColor(btn, clr);
+    chgHintText(btnKey[whichBtn].txt, clr);
+}
+    
+function hiliteOff(whichBtn) {
+    var btn = document.getElementById(whichBtn);
+    chgBtnColor(btn, "white");
+    chgHintText("", "black");
+}
     
 function chgBtnColor(btn, clr) {
     btn.style.color = clr;
     
 }
+    
+function chgHintText(txt, clr) {
+    var el = document.getElementById("hintText");
+    el.innerHTML=txt;
+    el.style.color = clr;
+}
+    
+function printit(typ, txt) {
+    
+    var clr = colorKey[typ];
+    if(!clr) {
+        clr = "white";   
+    }
+    
+    var prDiv = document.getElementById("printout");
+    var txtDiv = document.createElement("DIV");
+    txtN = document.createTextNode(txt);
+    txtDiv.style.color = clr;
+    txtDiv.appendChild(txtN);
+    prDiv.insertBefore(txtDiv, prDiv.firstChild);
+    
+}
+
+//ACTION functions
     
 function resetLimits() {
 
@@ -196,7 +310,7 @@ function dataCapture(pts) {
     if(triState == 0) {
         chgBtnColor(btnDta, "white");
     } else {
-        chgBtnColor(btnDta, "red");
+        chgBtnColor(btnDta, colorKey["nav"]);
     }
     
             
@@ -261,6 +375,8 @@ function resetToStart() {
     
 }
 
+    
+//INITIALIZATION
 
 function init() {
     
@@ -472,39 +588,8 @@ function initPrint() {
      
 }
 
-function printit(typ, txt) {
-    
-    var clr; //color
-    switch(typ) {
-        case "lims":
-            clr = "green";
-        case "info":
-            clr = "yellow";
-            break;
-        case "pos":
-            clr = "violet";
-            break;
-        case "nav":
-            clr = "aqua";
-            break;
-        case "speed":
-            clr = "orange";
-            break;
-        default:
-            clr = "white";
-    }
-    
-    var prDiv = document.getElementById("printout");
-    var txtDiv = document.createElement("DIV");
-    txtN = document.createTextNode(txt);
-    txtDiv.style.color = clr;
-    txtDiv.appendChild(txtN);
-    prDiv.insertBefore(txtDiv, prDiv.firstChild);
-    
-}
 
-
-
+//RESET functions
 
 function resetTopViews(tgt) {
 
@@ -605,7 +690,6 @@ function resetBasViews(tgt) {
 }
 
 
-
 </script>
 
 <style>
@@ -664,6 +748,11 @@ function resetBasViews(tgt) {
         color: white;
     }
     
+    #hintText {
+	    font-family: Arial;
+	    font-size:10pt;        
+    }
+    
     body.disable-click {
         pointer-events: none;
     }
@@ -706,10 +795,16 @@ function resetBasViews(tgt) {
     <input type="button" class="btn" id="Ofs" value="Ofs"></input>
     <input type="button" class="btn" id="BUp" value="BUp"></input>
     <span>&nbsp;&nbsp;</span>
+    <input type="button" class="btn" id="Loc" value="Loc"></input>
+    <input type="button" class="btn" id="Clr" value="Clr"></input>
+    <span>&nbsp;&nbsp;</span>
     <input type="button" class="btn" id="Lmt" value="Lmt"></input>
     <input type="button" class="btn" id="Dta" value="Dta"></input>
+    <span>&nbsp;&nbsp;</span>
+    <span id="hintText"></span>
+
 </div> 
-   
+
 <!--x-corner<input id='xcorner' value='-2' size='30'></input>-->
 <!--y-corner<input id='ycorner' value='-1.5' size='30'></input>-->
 <!--x-center<input id='xcenter' value='-0.5' size='30'></input>-->
