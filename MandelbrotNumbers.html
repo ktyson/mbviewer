@@ -14,33 +14,41 @@ var triState = 0;  //0 - initial data //1 - 1st click //2 - 2nd click
 var currDataObj = {}; //the currently worked on data object
 var isOffset = false;
 var isLocate = false;
-    
-function ready() {
+var cursorX;
+var cursorY;
+var divMainPP;
+var tempLocates = [];
 
-    //EVENT - click on main view
-    var mainView = document.getElementById("tdMain");
-    mainView.addEventListener("click", function(e) {
-        //this is brittle    
-        var div1 = mainView.parentElement.parentNode.parentNode;
-        var x = e.pageX - div1.offsetLeft;
-        var y = e.pageY - div1.offsetTop;
+function ready() {
     
-        
+    var mainView = document.getElementById("tdMain");
+
+    //this is brittle    
+    divMainPP = mainView.parentElement.parentNode.parentNode;
+
+    
+    //EVENT - keep global mouse position for main view
+    mainView.addEventListener("mousemove", function(e) {
+        cursorX = e.pageX - divMainPP.offsetLeft;
+        cursorY = e.pageY - divMainPP.offsetTop;
+    });
+    //EVENT - click on main view    
+    mainView.addEventListener("click", function(e) {
+
+        var x = e.pageX - divMainPP.offsetLeft;
+        var y = e.pageY - divMainPP.offsetTop;
         var coordsMB = MBVSet.main.GetMBCoords(x,y);
         
         //SUB-EVENT - when in Data mode, harvest MB x,y's for 2 clicks
         if(triState != 0) {
-            dataCapture(coordsMB);   
+            dataCapture(coordsMB, x, y);   
         }
 
         //SUB-EVENT - when in Locate mode, return the MB coords
         if(isLocate) {
             
-            
-            MBOver.DrawDot(x,y);
-            //MBOver.DrawLine(x,y,x+30,y+20);
-            //MBOver.DrawSquare(x+30,y+20);
-            
+            tempLocates.push({x:coordsMB.x,y:coordsMB.y});
+            MBOver.DrawDot(x,y);            
             printit("pos", "locate: " + x + "px," + y + "px; MB: " + coordsMB.x + ", " + coordsMB.y );
             
             isLocate = false;
@@ -75,6 +83,7 @@ function ready() {
 
             MBVSet.main.SetZoom(z,x,y);
             MBVSet.main.Render();
+            afterRender();
 
             var newTgt = MBVSet.main.GetSettings();
 
@@ -263,6 +272,27 @@ function printit(typ, txt) {
 }
 
 //ACTION functions
+ 
+    
+function displayLocates() {
+    for(var i = 0; i < tempLocates.length; i++) {
+        var mbX = tempLocates[i].x;
+        var mbY = tempLocates[i].y; 
+        var pixelPts = MBVSet.main.GetPixelCoords(mbX, mbY);
+        
+        MBOver.DrawDot(pixelPts.x,pixelPts.y); 
+    }
+}
+    
+function clearLocates() {
+    tempLocates = [];   
+}
+    
+function afterRender() {
+    MBOver.ClearOver();
+    displayLocates();
+}
+    
     
 function resetLimits() {
 
@@ -278,7 +308,7 @@ function resetLimits() {
                 
 }
     
-function dataCapture(pts) {
+function dataCapture(pts, x, y) {
     //triState is a global - HACK
     switch(triState) {
         case 0:
@@ -295,12 +325,15 @@ function dataCapture(pts) {
             break;
         case 1:
             currDataObj.c = pts;
+            //MBOver.DrawDot(x, y);
+            loopDrawLine(x,y);
             triState = 2;
             break;
         case 2:
             currDataObj.r = pts;
             printit("data", JSON.stringify(currDataObj,null,' '));
             currDataObj = {};
+            clearInterval(loopLineTimer);
             triState = 0; 
             break;
         default:
@@ -316,7 +349,17 @@ function dataCapture(pts) {
             
 }
     
+var loopLineTimer;
+function loopDrawLine(staticX, staticY) {
+    loopLineTimer = setInterval(function(){
+        MBOver.ClearOver();
+        MBOver.DrawDot(staticX, staticY);
+        MBOver.DrawSquare(cursorX, cursorY);
+        MBOver.DrawLine(staticX, staticY,cursorX, cursorY);
+    }, 200);
 
+}
+    
 function backUp() {
     var tgtBck = MBVSet["T5"].GetSettings();
 
@@ -328,6 +371,7 @@ function backUp() {
     
     MBVSet.main.SetZoom(z,x,y);
     MBVSet.main.Render();
+    afterRender();
     
     var newTgt = MBVSet.main.GetSettings();
 
@@ -348,6 +392,7 @@ function reset(tgtSet) {
 
     MBVSet.main.SetZoom(tgtSet.zoom,tgtSet.xcorner,tgtSet.ycorner);
     MBVSet.main.Render(); 
+    afterRender();
 
     resetTopViews(tgtSet);
     resetMidViews(tgtSet);
@@ -363,6 +408,7 @@ function resetToStart() {
 
     MBVSet.main.SetZoom(3,-2,-1.5);
     MBVSet.main.Render(); 
+    afterRender();
     
     var tgtSet = MBVSet.main.GetSettings();
     resetTopViews(tgtSet);
@@ -405,7 +451,8 @@ function init() {
 function initMainView() {
     MBVSet.main = new MBView("canvasMain", "divMain",  736, 736);
     MBVSet.main.SetZoom(3,-2,-1.5);
-    MBVSet.main.Render();    
+    MBVSet.main.Render();
+
 }
     
 function initOverlay() {
